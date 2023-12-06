@@ -2,7 +2,7 @@
  * @Author: hyl 2126419009@qq.com
  * @Date: 2023-12-04 20:57:52
  * @LastEditors: hyl 2126419009@qq.com
- * @LastEditTime: 2023-12-04 21:57:03
+ * @LastEditTime: 2023-12-05 15:19:29
  * @FilePath: /chatgpt-app/components/home/Navigation/ChatList.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -10,9 +10,7 @@
 import { groupByDate } from "@/common/util";
 import { Chat } from "@/types/chat";
 import { useMemo, useState } from "react";
-import {AiOutlineEdit} from "react-icons/ai"
-import {MdCheck,MdClose,MdDeleteOutline} from "react-icons/md"
-import {PiChatBold,PiTrashBold} from "react-icons/pi"
+import ChatItem from "./Chatltem";
 
 export default function ChatList(){
     const [chatList,setChatList] = useState<Chat[]>([
@@ -109,24 +107,14 @@ export default function ChatList(){
                  <ul>
                 {list.map((item)=>{
                 const selected = selectedChat?.id ===item.id
-                return( 
-                <li 
-                onClick={()=>setselectedChat(item)}
-                key={item.id} 
-                className={`group flex items-center p-3 space-x-3 cursor-pointer rounded-md hover:bg-gray-800 ${
-                    selected ? "bg-gray-800" : ""
-                }`}>
-                    <div>
-                        <PiChatBold />
-                    </div>
-                    <div className="flex-1 whitespace-nowrap overflow-hidden">
-                        {item.title}
-                        <span className={` group-hover:from-gray-800 absolute right-0 inset-y-0 w-8 from-gray-900 bg-gradient-to-l ${
-                            selected ? "from-gray-800" : ""
-                        }`}></span>
-                    </div>
-                </li>
-                )
+                return <ChatItem 
+                key={item.id}
+                item={item}
+                selected={selected}
+                onSelected={(chat)=>{
+                    setselectedChat(chat)
+                }}
+                ></ChatItem>
             })}
         </ul>
             </div>
