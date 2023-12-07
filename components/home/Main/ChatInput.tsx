@@ -3,19 +3,30 @@ import { MdRefresh } from "react-icons/md"
 import { PiLightningFill, PiStopBold } from "react-icons/pi"
 import { FiSend } from "react-icons/fi"
 import TextareaAutoSize from "react-textarea-autosize"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
 import { Message, MessageRequestBody } from "@/types/chat"
 import { useAppContext } from "@/components/AppContext"
 import { ActionType } from "@/reducers/AppReducer"
+import { useEventBusContext } from "@/components/EventBusContext"
 
 export default function ChatInput() {
     const [messageText, setMessageText] = useState("")
     const stopRef = useRef(false)
+    const chatIdRef = useRef("")
     const {
-        state: { messageList, currentModel, streamingId },
+        state: { messageList, currentModel, streamingId ,selectedChat},
         dispatch
     } = useAppContext()
+
+    const {publish} = useEventBusContext()
+    useEffect(()=>{
+        if(chatIdRef.current === selectedChat?.id){
+            return
+        }
+        chatIdRef.current = selectedChat?.id ?? ""
+        stopRef.current = true
+    },[selectedChat])
 
     async function createOrUpdateMessage(message: Message) {
         const response = await fetch("/api/message/update", {
@@ -30,15 +41,40 @@ export default function ChatInput() {
             return
         }
         const { data } = await response.json()
+        if(!chatIdRef.current){
+            chatIdRef.current = data.message.chatId
+            publish("fetchChatList")
+            dispatch({
+                type:ActionType.UPDATE,
+                field:"selectedChat",
+                value:{id:chatIdRef.current}
+            })
+        }
         return data.message
     }
+
+    async function deleteMessage(id: string) {
+        const response = await fetch(`/api/message/delete?id=${id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        if (!response.ok) {
+            console.log(response.statusText)
+            return
+        }
+        const { code } = await response.json()
+        return code === 0
+    }
+
 
     async function send() {
         const message = await createOrUpdateMessage({
             id: "",
             role: "user",
             content: messageText,
-            chatId: ""
+            chatId: chatIdRef.current
         })
         dispatch({ type: ActionType.ADD_MESSAGE, message })
         const messages = messageList.concat([message])
@@ -51,6 +87,11 @@ export default function ChatInput() {
             messages.length !== 0 &&
             messages[messages.length - 1].role === "assistant"
         ) {
+            const result = await deleteMessage(messages[messages.length - 1].id)
+            if(result){
+                console.log("delete error")
+                return
+            }
             dispatch({
                 type: ActionType.REMOVE_MESSAGE,
                 message: messages[messages.length - 1]
@@ -61,6 +102,7 @@ export default function ChatInput() {
     }
 
     async function doSend(messages: Message[]) {
+        stopRef.current= false
         const body: MessageRequestBody = { messages, model: currentModel }
         setMessageText("")
         const controller = new AbortController()
@@ -80,12 +122,12 @@ export default function ChatInput() {
             console.log("body error")
             return
         }
-        const responseMessage: Message = {
-            id: uuidv4(),
+        const responseMessage: Message = await createOrUpdateMessage({
+            id: "",
             role: "assistant",
             content: "",
-            chatId: ""
-        }
+            chatId: chatIdRef.current
+        })
         dispatch({ type: ActionType.ADD_MESSAGE, message: responseMessage })
         dispatch({
             type: ActionType.UPDATE,
@@ -98,7 +140,6 @@ export default function ChatInput() {
         let content = ""
         while (!done) {
             if (stopRef.current) {
-                stopRef.current = false
                 controller.abort()
                 break
             }
@@ -111,6 +152,7 @@ export default function ChatInput() {
                 message: { ...responseMessage, content }
             })
         }
+        createOrUpdateMessage({...responseMessage, content })
         dispatch({
             type: ActionType.UPDATE,
             field: "streamingId",
