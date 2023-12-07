@@ -2,12 +2,13 @@
  * @Author: hyl 2126419009@qq.com
  * @Date: 2023-12-04 11:34:52
  * @LastEditors: hyl 2126419009@qq.com
- * @LastEditTime: 2023-12-06 15:21:58
+ * @LastEditTime: 2023-12-06 15:29:52
  * @FilePath: /chatgpt-app/app/layout.tsx
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import AppContextProvider from '@/components/AppContext'
 import '@/styles/globals.css'
+import '@/styles/markdown.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 

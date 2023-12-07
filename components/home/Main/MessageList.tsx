@@ -1,40 +1,10 @@
+import { useAppContext } from "@/components/AppContext"
 import Markdown from "@/components/common/Markdown"
 import { Message } from "@/types/chat"
 import { SiOpenai } from "react-icons/si"
 
 export default function MessageList() {
-    const messageList: Message[] = [
-        {
-            id: "1",
-            role: "user",
-            content: "hello",
-        },
-        {
-            id: "2",
-            role: "assistant",
-            content: "在tailwind中pt-10是什么意思,hhhhhhdskfjhskfhksdfhdksjhfksjdhfkjhsjkfhkashfhaskjfhksahdkfhskjhfksjhkfhksahfksakjf",
-        },
-        {
-            id: "3",
-            role: "user",
-            content: "hello",
-        },
-        {
-            id: "4",
-            role: "assistant",
-            content: "在tailwind中pt-10是什么意思,hhhhhhdskfjhskfhksdfhdksjhfksjdhfkjhsjkfhkashfhaskjfhksahdkfhskjhfksjhkfhksahfksakjf",
-        }, {
-            id: "5",
-            role: "user",
-            content: "hello",
-        },
-        {
-            id: "6",
-            role: "assistant",
-            content: "在tailwind中pt-10是什么意思,hhhhhhdskfjhskfhksdfhdksjhfksjdhfkjhsjkfhkashfhaskjfhksahdkfhskjhfksjhkfhksahfksakjf",
-        },
-    ]
-
+    const {state:{messageList,streamingId}}=useAppContext()
     return <div className="w-full pt-10 pb-48 dark:text-gray-300">
         <ul>
             {messageList.map((message) => {
@@ -46,7 +16,7 @@ export default function MessageList() {
                         <div className="text-3xl leading-[1]">
                             {isUser ? "😊" : <SiOpenai />}
                         </div>
-                        <div className="flex-1"><Markdown>{message.content}</Markdown></div>
+                        <div className="flex-1"><Markdown>{`${message.content}${message.id === streamingId ? "▍":""}`}</Markdown></div>
                     </div>
                 </li>
             })}
